@@ -51,10 +51,7 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
             print(f'''[INFO] {threadID}{account}({data['sender']}) 登录成功''')
         
         #print(Recipients)
-        for recipient in list(Recipients.keys()): #收件人
-            if stop_event and stop_event.is_set():
-                print(f'[WARNING] 用户终止了线程:{threadID}')
-                return
+        for i,recipient in enumerate(list(Recipients.keys())): #收件人
             
             if waitingTime > 60:#防止系统超时登出
                 # 创建 SMTP 连接
@@ -64,6 +61,10 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
                 print(f'[DEBUG] {threadID}连接创建成功')
                 server.login(data['sender'], data['password'])
                 print(f'''[INFO] {threadID}{account}({data['sender']}) 登录成功''')
+
+            if stop_event and stop_event.is_set():
+                print(f'[WARNING] 用户终止了线程:{threadID}')
+                return
             
             # 构建邮件内容
             msg = MIMEMultipart()
@@ -95,7 +96,7 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
                     msg.attach(file_part)
             print(f'[DEBUG] {threadID}邮件内容构建完成')
             # 发送邮件
-            #server.sendmail(data['sender'], Recipients[recipient]['mail'].replace(" ", ""), msg.as_string())
+            server.sendmail(data['sender'], Recipients[recipient]['mail'].replace(" ", ""), msg.as_string())
             print(f"[INFO] {threadID}邮件已成功发送至 {recipient}")
             
             if workbook and key_column:
@@ -105,6 +106,9 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
                     workbook.save(settings['content'])
                     print(f"[DEBUG] 更新表格信息成功")
 
+            #判断是否是最后一个
+            if i+1 == len(list(Recipients.keys())):
+                return #直接返回
             #优化终止线程判断
             ttime = time.time()
             while time.time() < ttime + waitingTime:

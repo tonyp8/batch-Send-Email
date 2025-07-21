@@ -759,7 +759,7 @@ class EmailSenderUI:
             
             reciver = [reciverdict[name]['mail'] for name in reciverdict]
             print(f"[INFO] 邮件将发送到{len(reciver)}个收件人")
-            print(f'[INFO] 件人名单: \n{reciver}')
+            print(f'[INFO] 收件人名单: \n{reciver}')
             
             # 准备账户配置
             accounts_config = dict(config['accounts'])
@@ -783,6 +783,7 @@ class EmailSenderUI:
                 account_name = list(accounts_config.keys())[0]
                 account_config = accounts_config[account_name]
                 print(f"[INFO] 使用单邮箱发送: {account_name}")
+                print(f'''预计用时{round(((len(reciverdict)-1)*settings["intervalSendingTime"])/60,1)}分钟''')
                 sendMailCore.send_emails(
                     account_name, 
                     account_config, 
@@ -794,6 +795,13 @@ class EmailSenderUI:
                 # 多邮箱发送
                 print(f"[INFO] 使用多邮箱发送 ({len(accounts_config)}个邮箱)")
                 recDictList = split_dict_avg(reciverdict, len(accounts_config))
+                if settings["staggeredSending"]: #关闭交错发送
+                    if len(reciverdict)<=3:
+                        print(f'''预计用时0.5分钟''')
+                    else:
+                        print(f'''预计用时{round((len(reciverdict)-2)*settings["intervalSendingTime"]/60,1)}分钟''')
+                else:  #开启交错发送
+                    print(f'''预计用时{round(((len(reciverdict)-1)/2)*settings["intervalSendingTime"]/60,1)}分钟''')
                 
                 threads = []
                 for i, account_name in enumerate(accounts_config.keys()):
@@ -818,6 +826,9 @@ class EmailSenderUI:
                     thread.start()
                     threads.append(thread)
                     time.sleep(0.5)
+
+                    if i+2 <= len(recDictList) and (not recDictList[i+1]):
+                        continue
                     
                     # 交错发送间隔
                     #print(settings["intervalSendingTime"] // len(accounts_config))
@@ -836,7 +847,10 @@ class EmailSenderUI:
                 for thread in threads:
                     thread.join()
             
-            print("[INFO] 邮件发送完成!")
+            if self.stop_event.is_set():
+                print("[INFO] 邮件发送失败: 用户终止了发送")
+            else:
+                print("[INFO] 邮件发送完成!")
         
         except Exception as e:
             print(f"[ERROR] 发送过程中出错: {str(e)}")
