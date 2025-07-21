@@ -1,0 +1,9 @@
+		"//":"邮件模板位置",
+		"mailModelContent":{
+			"//":"按语言筛选，若没有则按第一个发送",
+			"EN":"C:/Users/admin/Downloads/私信模板3/mail/抖音前段私信模板3.txt",
+			"ES":"C:/Users/admin/Downloads/私信模板3/mail/抖音前段私信模板3 - ES.txt",
+			"FR":"C:/Users/admin/Downloads/私信模板3/mail/抖音前段私信模板3 - FR.txt",
+			"IT":"C:/Users/admin/Downloads/私信模板3/mail/抖音前段私信模板3 - IT.txt",
+			"DE":"C:/Users/admin/Downloads/私信模板3/mail/抖音前段私信模板3 - DE.txt"
+			},

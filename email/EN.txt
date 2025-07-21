@@ -1,0 +1,7 @@
+entitle
+en
+dear [recName],
+nothing
+
+[senderName]
+WESLAMIC Team

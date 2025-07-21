@@ -1,0 +1,8 @@
+detitle
+de
+libre*r [recName],
+
+nothing
+
+[senderName]
+WESLAMIC Team
