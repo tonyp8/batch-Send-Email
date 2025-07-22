@@ -698,7 +698,7 @@ class EmailSenderUI:
         # 定义要匹配的标记模式
         patterns = [
             r"\[发送人\]", r"\[接收人\]", r"\[日期\]", 
-            r"\[.*?\]"  # 匹配所有其他标记
+            r"\[.*?\]"  # 匹配所有其他标记,通过这里高亮[recName],[senderName].模板替换函数replace_template_tags
         ]
         
         # 为每个模式添加高亮
@@ -758,8 +758,8 @@ class EmailSenderUI:
                 return
             
             reciver = [reciverdict[name]['mail'] for name in reciverdict]
-            print(f"[INFO] 邮件将发送到{len(reciver)}个收件人")
-            print(f'[INFO] 收件人名单: \n{reciver}')
+            print(f"邮件将发送到{len(reciver)}个收件人")
+            print(f'收件人名单: \n{reciver}')
             
             # 准备账户配置
             accounts_config = dict(config['accounts'])
@@ -778,7 +778,7 @@ class EmailSenderUI:
             settings = config['settings']
             
             # 根据配置选择发送方式
-            if len(accounts_config) == 1 or settings['singleSender']['enabled']:
+            if len(accounts_config) == 1 or settings['singleSender']['enabled'] or len(reciverdict) == 1:
                 # 单邮箱发送
                 account_name = list(accounts_config.keys())[0]
                 account_config = accounts_config[account_name]
@@ -795,9 +795,13 @@ class EmailSenderUI:
                 # 多邮箱发送
                 print(f"[INFO] 使用多邮箱发送 ({len(accounts_config)}个邮箱)")
                 recDictList = split_dict_avg(reciverdict, len(accounts_config))
+                #print(f'{settings["staggeredSending"]} statue')
                 if settings["staggeredSending"]: #关闭交错发送
-                    if len(reciverdict)<=3:
-                        print(f'''预计用时0.5分钟''')
+                    if len(reciverdict)<=2:
+                        if len(reciverdict) == 1:
+                            print(f'''预计用时0分钟''')
+                        else:
+                            print(f'''预计用时round(settings["intervalSendingTime"]/60,1)分钟''')
                     else:
                         print(f'''预计用时{round((len(reciverdict)-2)*settings["intervalSendingTime"]/60,1)}分钟''')
                 else:  #开启交错发送

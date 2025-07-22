@@ -45,6 +45,8 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
         waitingTime = settings["intervalSendingTime"]
         if waitingTime <= 60:#防止系统超时登出
             # 创建 SMTP 连接
+            print(f'[INFO] {threadID}正在登录')
+            print(f'[DEBUG] {threadID}少女祈祷中...')
             server = smtplib.SMTP_SSL(data['SMTP_SERVER'], data['SMTP_PORT'])
             print(f'[DEBUG] {threadID}连接创建成功')
             server.login(data['sender'], data['password'])
@@ -73,7 +75,7 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
             
             senderNameSettings = settings['senderName']
             if senderNameSettings['statue'] == 0: #发送人署名设置设置选项:
-                #{0:'替换名字',1:'按照配置文件署名',2:'按照表格署名'}
+                #{0:'替换名字',1:'按照配置文件署名'}
                 senderName = senderNameSettings['senderName']
             elif senderNameSettings['statue'] == 1:
                 senderName = data['senderName']
@@ -96,15 +98,20 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
                     msg.attach(file_part)
             print(f'[DEBUG] {threadID}邮件内容构建完成')
             # 发送邮件
-            server.sendmail(data['sender'], Recipients[recipient]['mail'].replace(" ", ""), msg.as_string())
-            print(f"[INFO] {threadID}邮件已成功发送至 {recipient}")
+            recMailAddress = Recipients[recipient]['mail'].replace(" ", "")
+            server.sendmail(data['sender'], recMailAddress, msg.as_string())
+            print(f"[INFO] {threadID}邮件已成功发送至 {recipient}({recMailAddress})")
             
             if workbook and key_column:
                 with sheet_lock:  # 获取锁
-                    print(f"[DEBUG] 更新表格信息")
-                    workbook.active.cell(row=Recipients[recipient]['row'], column=key_column).value = f"{senderName}已发送"
-                    workbook.save(settings['content'])
-                    print(f"[DEBUG] 更新表格信息成功")
+                    try:
+                        print(f"[DEBUG] {threadID}更新表格信息")
+                        workbook.active.cell(row=Recipients[recipient]['row'], column=key_column).value = f"{senderName}已发送"
+                        workbook.save(settings['content'])
+                        print(f"[DEBUG] {threadID}更新表格信息成功")
+                    except Exception as e:
+                        if '[Errno 13]' in str(e):
+                            print('[WARNING] 请保存并关闭达人表格以登记发送状态!')
 
             #判断是否是最后一个
             if i+1 == len(list(Recipients.keys())):
@@ -120,15 +127,16 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
             print(f'[INFO] {threadID}等待{waitingTime}s\n')
             if waitingTime > 60:#防止系统超时登出
                 server.quit()
+                print(f'''[INFO] {threadID}{account}({data['sender']}) 登出成功''')
             
         if waitingTime <= 60:
             server.quit()
+            print(f'''[INFO] {threadID}{account}({data['sender']}) 登出成功''')
             
-        print(f'''[INFO] {threadID}{account}({data['sender']}) 登出成功''')
     except Exception as e:
         if str(e) == '[Errno 0] Error':
             print('[ERROR] 请检查网络连接')
-        print(f"[ERROR] 邮件发送失败: {e}")
+        print(f"[ERROR] {threadID}邮件发送失败: {e}")
 
 if __name__ == "__main__":
     print('[WARNING] 你正在运行发送核心！')
