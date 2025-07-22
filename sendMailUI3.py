@@ -372,6 +372,13 @@ class EmailSenderUI:
             settings = self.config['settings']
             self.interval_var.set(settings.get('intervalSendingTime', 180))
             
+            # 加载账户列表
+            accounts = list(self.config['accounts'].keys())
+            accounts = [acc for acc in accounts if not acc.startswith('//') and acc != 'exampleAccount']
+            self.sender_combobox['values'] = accounts
+            if accounts:
+                self.sender_combobox.set(accounts[0])
+                
             # 修复交错发送设置
             staggered_value = settings.get('staggeredSending', 0)
             self.staggered_var.set(bool(staggered_value))
@@ -380,12 +387,13 @@ class EmailSenderUI:
             # 单邮箱设置
             single_sender = settings.get('singleSender', {})
             self.single_sender_enabled.set(bool(single_sender.get('enabled', 0)))
+            #print(single_sender.get('defaultSenderName', ''))
             self.single_sender_var.set(single_sender.get('defaultSenderName', ''))
             
             # 筛选设置
             charger_name = settings.get('chargerName', {})
             self.filter_mode_var.set('匹配负责人' if charger_name.get('statue', 0) == 0 else '排除负责人')
-            self.charger_name_var.set(charger_name.get('chargerName', 'coco'))
+            self.charger_name_var.set(charger_name.get('chargerName', 'bobo'))
             
             # 署名设置 - 移除不支持的选项
             sender_name = settings.get('senderName', {})
@@ -394,14 +402,7 @@ class EmailSenderUI:
                 sign_mode_index = 1
                 print("[WARNING] '按照表格署名'模式暂不支持，已自动切换为'使用账户配置'")
             self.sign_mode_var.set(['固定署名', '使用账户配置'][sign_mode_index])
-            self.fixed_sign_var.set(sender_name.get('senderName', 'coco1'))
-            
-            # 加载账户列表
-            accounts = list(self.config['accounts'].keys())
-            accounts = [acc for acc in accounts if not acc.startswith('//') and acc != 'exampleAccount']
-            self.sender_combobox['values'] = accounts
-            if accounts:
-                self.sender_combobox.set(accounts[0])
+            self.fixed_sign_var.set(sender_name.get('senderName', 'abc'))
             
             # 加载模板设置 - 忽略注释
             template_settings = settings['mailModelContent']
@@ -780,9 +781,15 @@ class EmailSenderUI:
             # 根据配置选择发送方式
             if len(accounts_config) == 1 or settings['singleSender']['enabled'] or len(reciverdict) == 1:
                 # 单邮箱发送
-                account_name = list(accounts_config.keys())[0]
+                if settings['singleSender']['defaultSenderName'] in accounts_config:
+                    account_name = settings['singleSender']['defaultSenderName']
+                else:
+                    print(f'[WARNING] 默认发送邮箱配置有误!')
+                    print(f'[WARNING] 可供选择的账户: {list(accounts_config.keys())}')
+                    account_name = list(accounts_config.keys())[0]
+                    print(f'[INFO] 已自动选择{account_name}')
                 account_config = accounts_config[account_name]
-                print(f"[INFO] 使用单邮箱发送: {account_name}")
+                print(f"\n使用单邮箱发送: {account_name}")
                 print(f'''预计用时{round(((len(reciverdict)-1)*settings["intervalSendingTime"])/60,1)}分钟''')
                 sendMailCore.send_emails(
                     account_name, 
@@ -793,7 +800,7 @@ class EmailSenderUI:
                 )
             else:
                 # 多邮箱发送
-                print(f"[INFO] 使用多邮箱发送 ({len(accounts_config)}个邮箱)")
+                print(f"\n使用多邮箱发送 ({len(accounts_config)}个邮箱)")
                 recDictList = split_dict_avg(reciverdict, len(accounts_config))
                 #print(f'{settings["staggeredSending"]} statue')
                 if settings["staggeredSending"]: #关闭交错发送
