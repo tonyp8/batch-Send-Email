@@ -20,7 +20,7 @@ executables = [
     Executable(
         script="sendMailUI3.py",  # 需要打包的.py文件
         base= 'Win32GUI',  # 控制台应用程序使用 None，GUI应用程序使用 'Win32GUI'
-        icon="",  # 可执行文件的图标
+        icon="icon.ico",  # 可执行文件的图标
         target_name="sendMailGUI.exe",  # 生成的可执行文件名称
     )
 ]
@@ -28,7 +28,7 @@ executables = [
 # 3、调用 setup 函数
 setup(
     name="batchSendMail-GUI",  # 应用程序名称
-    version="2.0.0",  # 应用程序版本
+    version="3.8.0",  # 应用程序版本
     description="批量发送邮件GUI",  # 应用程序描述
     options={"build_exe": build_exe_options},  # 构建选项，若没有配置，可不写
     executables=executables,  # 可执行文件配置
