@@ -599,8 +599,9 @@ class EmailSenderUI:
             note = "模板标记说明:\n"
             note += "  [senderName] - 将被替换为发送人姓名\n"
             note += "  [recName] - 将被替换为接收人姓名\n"
+            note += "  [date] - 将被替换为当前日期, 格式: YYYY-MM-DD\n"
             note += "  <替换标记> 在模板中替换上面两者\n"
-            note += "  <保存修改> 保存上面显示的模板"
+            note += "  <保存修改> 保存上面显示的文本(如果完成了替换,替换结果将被保存!)"
             tk.Label(note_frame, text=note, justify=tk.LEFT, anchor="w").pack(fill=tk.X)
             
             # 加载模板函数
@@ -654,9 +655,9 @@ class EmailSenderUI:
         content = self.template_text.get("1.0", tk.END)
         
         # 示例替换逻辑 - 请根据您的需求修改
-        content = content.replace("[senderName]", sender)
-        content = content.replace("[recName]", receiver)
-        #content = content.replace("[日期]", time.strftime("%Y-%m-%d"))
+        content = content.replace("[senderName]", str(sender))
+        content = content.replace("[recName]", str(receiver))
+        content = content.replace("[date]", time.strftime("%Y-%m-%d"))
         
         self.template_text.delete("1.0", tk.END)
         self.template_text.insert("1.0", content)
@@ -796,7 +797,10 @@ class EmailSenderUI:
                     account_config, 
                     reciverdict, 
                     settings,
-                    stop_event=self.stop_event
+                    stop_event=self.stop_event,
+                    workbook = workbook,  # 传入工作表对象
+                    key_column = config['settings']["xlsxKeys"]["sendingStatus"],
+                    sheet_lock = self.sheet_lock
                 )
             else:
                 # 多邮箱发送
