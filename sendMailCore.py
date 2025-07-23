@@ -88,8 +88,11 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
 
             #print('[DEBUG] 邮件原始内容:',msg['Subject'],content,attachment)
             #添加正文
-            msg.attach(MIMEText(content, 'plain', 'utf-8'))
-
+            if settings["HTMLMode"]:
+                msg.attach(MIMEText(content, 'html', 'utf-8'))
+            else:
+                msg.attach(MIMEText(content, 'plain', 'utf-8'))
+            
             # 添加附件
             for file_path in attachment:
                 with open(file_path, 'rb') as f:
@@ -101,7 +104,8 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
             recMailAddress = Recipients[recipient]['mail'].replace(" ", "")
             server.sendmail(data['sender'], recMailAddress, msg.as_string())
             print(f"[INFO] {threadID}邮件已成功发送至 {recipient}({recMailAddress})")
-            
+
+            #更新表格数据
             if workbook and key_column:
                 with sheet_lock:  # 获取锁
                     try:
@@ -111,11 +115,17 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
                         print(f"[DEBUG] {threadID}更新表格信息成功")
                     except Exception as e:
                         if '[Errno 13]' in str(e):
-                            print('[WARNING] 请保存并关闭达人表格以登记发送状态!')
+                            print('[WARNING] 发送状态保存失败! 请保存并关闭达人表格以登记发送状态.')
 
             #判断是否是最后一个
             if i+1 == len(list(Recipients.keys())):
                 return #直接返回
+
+            if waitingTime > 60:#防止系统超时登出
+                server.quit()
+                print(f'''[INFO] {threadID}{account}({data['sender']}) 登出成功''')
+
+            print(f'[INFO] {threadID}等待{waitingTime}s\n')
             #优化终止线程判断
             ttime = time.time()
             while time.time() < ttime + waitingTime:
@@ -123,11 +133,6 @@ def send_emails(account,data,Recipients,settings = {},threadID = '主',
                     print(f'[WARNING] 用户终止了线程:{threadID}')
                     return  
                 time.sleep(1)
-            
-            print(f'[INFO] {threadID}等待{waitingTime}s\n')
-            if waitingTime > 60:#防止系统超时登出
-                server.quit()
-                print(f'''[INFO] {threadID}{account}({data['sender']}) 登出成功''')
             
         if waitingTime <= 60:
             server.quit()
