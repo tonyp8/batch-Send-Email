@@ -7,7 +7,7 @@ import openpyxl
 import threading
 from numpy import array_split 
 
-import sendMailCore
+#import sendMailCore
 #import batchChangeNamePyperclip
 
 #content = getcwd()
@@ -111,7 +111,7 @@ def getReciver(sheet,key,chargerNameSetting):
     resName = chargerNameSetting['chargerName'].upper()# 负责人名字
     print(f'''[INFO] 匹配/排除名称: {resName}''')
     
-    for trow in range(1,sheet.max_row+1): #忽略首行
+    for trow in range(2,sheet.max_row+1): #忽略首行
         if not sheet.cell(row = trow,column = key['sendingStatus']).value: #没有发送
             if ((not chargerNameSetting['statue']) and resName == sheet.cell(row = trow,column = key['responser']).value) or (chargerNameSetting['statue'] and resName != sheet.cell(row = trow,column = key['responser']).value):
                 #模式0，负责人名称相等 / 模式1 负责名字不等
