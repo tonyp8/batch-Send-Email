@@ -48,8 +48,8 @@ def replaceName(content,recName,senderName):
     if not "[senderName]" in content:
         print('[WARNING] 未在模板中找到发送者署名替换处!')
         print('[WARNING] 格式: [senderName]')
-    content = content.replace("[recName]",recName)
-    content = content.replace("[senderName]",senderName)
+    content = content.replace("[recName]",str(recName))
+    content = content.replace("[senderName]",str(senderName))
     return content
     
 if __name__ == "__main__":
