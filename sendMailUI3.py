@@ -13,6 +13,9 @@ from datetime import datetime
 from sendMailMain import *
 import sendMailCore
 
+version = 'v3.8'
+
+
 class ColoredConsoleRedirector(io.StringIO):
     """重定向控制台输出到文本区域，支持颜色标记"""
     def __init__(self, text_widget):
@@ -95,7 +98,7 @@ class DoubleWriter:
 class EmailSenderUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("邮件批量发送系统")
+        self.root.title(f"邮件批量发送系统 {version}    by coco_29")
         self.root.geometry("1100x750")
         self.root.configure(bg="#f0f0f0")
         
